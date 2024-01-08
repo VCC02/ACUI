@@ -225,7 +225,11 @@ implementation
 
 
 uses
-  SimpleCOM, IniFiles, WaveformFuncUtils;
+  SimpleCOM,
+  {$IFnDEF Windows}
+    termio,
+  {$ENDIF}
+  IniFiles, WaveformFuncUtils;
 
 const
   CBufferSize = 20000;
@@ -591,6 +595,53 @@ begin
 end;
 
 
+{$IFnDEF Windows}
+  procedure HandleOnOverrideCOMSettings(AComName: string; var tios: Termios);
+  begin
+    tios.c_iflag := 4;
+    tios.c_oflag := 0;
+    tios.c_cflag := 5362;
+    tios.c_lflag := 0;
+    tios.c_line := #0;
+
+    tios.c_cc[0] := 3;
+    tios.c_cc[1] := 28;
+    tios.c_cc[2] := 127;
+    tios.c_cc[3] := 21;
+    tios.c_cc[4] := 1;
+    tios.c_cc[5] := 0;
+    tios.c_cc[6] := 1;
+    tios.c_cc[7] := 0;
+    tios.c_cc[8] := 17;
+    tios.c_cc[9] := 19;
+    tios.c_cc[10] := 26;
+    tios.c_cc[11] := 0;
+    tios.c_cc[12] := 18;
+    tios.c_cc[13] := 15;
+    tios.c_cc[14] := 23;
+    tios.c_cc[15] := 22;
+    tios.c_cc[16] := 0;
+    tios.c_cc[17] := 0;
+    tios.c_cc[18] := 0;
+    tios.c_cc[19] := 64;
+    tios.c_cc[20] := 110;
+    tios.c_cc[21] := 11;
+    tios.c_cc[22] := 10;
+    tios.c_cc[23] := 42;
+    tios.c_cc[24] := 149;
+    tios.c_cc[25] := 7;
+    tios.c_cc[26] := 8;
+    tios.c_cc[27] := 48;
+    tios.c_cc[28] := 235;
+    tios.c_cc[29] := 127;
+    tios.c_cc[30] := 182;
+    tios.c_cc[31] := 0;
+
+    tios.c_ispeed := 3216363864;
+    tios.c_ospeed := 134613246;
+  end;
+{$ENDIF}
+
 procedure TfrmACUIMain.btnConnectClick(Sender: TObject);
 begin
   FCOMName := GetCurrentCOMName;
@@ -599,6 +650,10 @@ begin
     DisplayExtraErrorMessage('No COM is selected.');
     Exit;
   end;
+
+  {$IFnDEF Windows}
+    OnOverrideCOMSettings := HandleOnOverrideCOMSettings;
+  {$ENDIF}
 
   FConnHandle := ConnectToCOM(FCOMName, 115200, {Parity_none, 8, ONESTOPBIT,} 4096, 4096);
   if FConnHandle > 0 then
